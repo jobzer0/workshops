@@ -1,0 +1,45 @@
+---
+title: Prerequisites
+description: Software and AWS credentials needed before starting the Prowler CLI workshop.
+---
+
+Before starting the workshop, ensure the following tools are installed and configured.
+
+## Required Software
+
+| # | Linux (Amazon Linux / Ubuntu) | Windows | macOS |
+|---|------|---------|-------|
+| 1 | Python 3.12+ installed (`python3 --version`) | Python 3.12+ installed ([python.org](https://www.python.org/downloads/)) — check "Add to PATH" during install | Python 3.12+ installed via Homebrew: `brew install python@3.12` |
+| 2 | `pip` available (`pip3 --version`) | `pip` available (`pip --version`) | `pip` available (`pip3 --version`) |
+| 3 | AWS CLI v2 installed | AWS CLI v2 installed | AWS CLI v2 installed |
+
+## AWS CLI Setup
+
+The AWS CLI is required so Prowler can authenticate to your AWS account. If you don't have it installed yet, follow the official guide:
+
+- [Installing the AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+Once installed, log in using your browser-based console credentials:
+
+```bash
+aws login
+```
+
+This opens your browser and authenticates the CLI using the same sign-in method you use for the AWS Management Console. It generates short-lived credentials that rotate automatically — no long-term access keys needed.
+
+- [aws login documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sign-in.html)
+
+## Required Permissions
+
+You will need an IAM user or role with at minimum the following managed policies attached:
+
+- `SecurityAudit`
+- `ViewOnlyAccess`
+
+## Verify Your Credentials
+
+```bash
+aws sts get-caller-identity
+```
+
+If this returns your account ID and ARN, you're good to go.

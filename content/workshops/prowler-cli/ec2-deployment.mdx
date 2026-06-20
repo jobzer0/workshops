@@ -1,0 +1,121 @@
+---
+title: EC2 Deployment
+description: Set up a remote EC2 workshop environment for Prowler CLI with external dashboard access.
+---
+
+If you're running this workshop on an EC2 instance and need attendees to access the dashboard from their browsers, follow these additional steps.
+
+## EC2 Prerequisites
+
+| Step | Details |
+|------|---------|
+| IAM Role | Attach `SecurityAudit` + `ViewOnlyAccess` + `AmazonSSMManagedInstanceCore` to the instance |
+| Security Group | Open inbound TCP port `11666` (source: workshop network CIDR or `0.0.0.0/0`) |
+| Instance Type | `t3.medium` minimum (2 vCPU, 4 GB RAM) |
+| AMI | Amazon Linux 2023 |
+| Public IP | Enable auto-assign public IP |
+
+## Connect to the Instance
+
+Use Session Manager:
+
+1. Go to **EC2 > Instances > Select instance > Connect**
+2. Choose **Session Manager** tab
+3. Click **Connect**
+
+## Install Prowler on the Instance
+
+```bash
+# Add local bin to PATH first to avoid pip warnings
+export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+
+# Install Prowler
+sudo dnf install -y python3.12 python3.12-pip
+pip3.12 install prowler
+```
+
+Verify:
+
+```bash
+prowler --version
+```
+
+## Run the Scan
+
+```bash
+mkdir -p /home/ssm-user/Documents
+cd /home/ssm-user/Documents
+prowler aws --services s3 iam --severity critical high
+```
+
+The instance's IAM role provides the AWS credentials automatically — no `aws login` needed on the EC2 instance.
+
+## Launch the Dashboard (with External Access)
+
+By default, `prowler dashboard` binds to `127.0.0.1` (localhost only), so external browsers cannot reach it. Since Prowler's CLI does not currently expose a `--host` flag for the dashboard, a workaround is needed.
+
+### Patch the Prowler Dashboard Binding
+
+This modifies the installed Prowler package to bind the dashboard to all network interfaces (`0.0.0.0`) instead of localhost only:
+
+```bash
+# Find and patch the dashboard config
+DASHBOARD_INIT=$(python3.12 -c "import dashboard; import os; print(os.path.dirname(dashboard.__file__))")/__init__.py
+sed -i 's/DASHBOARD_ARGS = {"debug"/DASHBOARD_ARGS = {"host": "0.0.0.0", "debug"/' "$DASHBOARD_INIT"
+```
+
+Then launch the dashboard:
+
+```bash
+cd /home/ssm-user/Documents
+prowler dashboard
+```
+
+<Callout type="warn">
+This workaround modifies Prowler's installed code. It changes the dashboard to accept connections from any network interface rather than localhost only. This is safe for a workshop environment but should not be done on a shared or production system without understanding the security implications.
+</Callout>
+
+### Access the Dashboard
+
+Open a browser and navigate to:
+
+```
+http://<instance-public-ip>:11666
+```
+
+Find the public IP in the AWS Console under **EC2 > Instances > Select your instance > Public IPv4 address**.
+
+## Download Report Files
+
+Session Manager's browser terminal doesn't support file downloads directly. Upload reports to S3 and download from the S3 console.
+
+### Add S3 Permission to the IAM Role
+
+Add the following inline policy to the instance role. Replace `YOUR-BUCKET-NAME` with your bucket:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowUploadToWorkshopBucket",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/reports/*"
+    }
+  ]
+}
+```
+
+### Upload the Report
+
+```bash
+aws s3 cp ~/Documents/output/ s3://YOUR-BUCKET-NAME/reports/ --recursive
+```
+
+Attendees can then navigate to the S3 console, open the bucket, and download their files.
+
+<Callout type="info">
+If you use the [CloudFormation template](/workshops/prowler-cli/cloudformation), the S3 bucket and IAM permissions are created automatically.
+</Callout>

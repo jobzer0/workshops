@@ -1,0 +1,36 @@
+---
+title: Troubleshooting & Cleanup
+description: Common issues and cleanup steps for the Prowler CLI workshop.
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `prowler: command not found` | Ensure Python scripts directory is in PATH (see [Installation](/workshops/prowler-cli/installation)) |
+| `aws sts get-caller-identity` fails | AWS CLI not authenticated — run `aws login` and follow the browser prompt |
+| Scan returns no findings | Verify AWS credentials have `SecurityAudit` and `ViewOnlyAccess` policies |
+| Dashboard shows "no data" | Ensure CSV files exist in the `output/` directory and you launched the dashboard from the same directory |
+| Dashboard not reachable on EC2 | Check security group has port 11666 open; verify the binding patch was applied |
+| Session Manager won't connect | Ensure IAM role includes `AmazonSSMManagedInstanceCore` and instance has internet access |
+
+## Cleanup
+
+### Local Machine (Windows / macOS)
+
+1. Press `Ctrl+C` in the terminal running the dashboard to stop it
+2. Optionally remove the `output/` folder if you no longer need the reports
+
+### EC2 Workshop Environment
+
+1. Press `Ctrl+C` to stop the dashboard
+2. Terminate the EC2 instance
+3. Delete the CloudFormation stack (this removes the security group, IAM role, and S3 bucket):
+
+```bash
+aws cloudformation delete-stack --stack-name prowler-workshop
+```
+
+<Callout type="warn">
+Deleting the CloudFormation stack will also delete the S3 bucket and all reports stored in it. Download any reports you need before deleting.
+</Callout>

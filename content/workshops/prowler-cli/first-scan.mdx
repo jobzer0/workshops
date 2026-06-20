@@ -1,0 +1,32 @@
+---
+title: Run Your First Scan
+description: Execute your first Prowler AWS security scan and understand the options for scoping it.
+---
+
+## Navigate to a Working Directory
+
+Prowler creates an `output/` folder in whatever directory you run the command from. Navigate to a familiar location first so you can easily find your results.
+
+| Linux | Windows | macOS |
+|-------|---------|-------|
+| `cd ~/Documents` | `cd %USERPROFILE%\Documents` | `cd ~/Documents` |
+
+## Full Scan
+
+Run a complete AWS scan using your configured credentials:
+
+```bash
+prowler aws
+```
+
+This may take 20–45 minutes depending on your account size. Results will be saved to `./output/`.
+
+## Quick Scoped Scan (Recommended for Workshops)
+
+For a faster demo, scope the scan to specific services and severity levels:
+
+| Linux | Windows | macOS |
+|-------|---------|-------|
+| `prowler aws --services s3 iam --severity critical high` | `prowler aws --services s3 iam --severity critical high` | `prowler aws --services s3 iam --severity critical high` |
+
+This typically completes in a few minutes and still produces meaningful findings.

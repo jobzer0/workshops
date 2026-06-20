@@ -1,0 +1,16 @@
+{
+  "title": "Prowler CLI Workshop",
+  "description": "Learn how to install Prowler CLI, run security scans, and explore findings with the dashboard.",
+  "pages": [
+    "index",
+    "prerequisites",
+    "installation",
+    "first-scan",
+    "output-formats",
+    "dashboard",
+    "ec2-deployment",
+    "cloudformation",
+    "cli-reference",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,224 @@
+---
+title: CLI Reference
+description: Complete reference for Prowler CLI arguments, flags, and common recipes.
+---
+
+Quick reference for Prowler CLI arguments. Run `prowler -h` or `prowler <provider> -h` for full help text.
+
+## Basic Usage
+
+```bash
+prowler <provider> [options]
+```
+
+If no provider is specified, `aws` is used by default.
+
+## Providers
+
+| Provider | Description |
+|----------|-------------|
+| `aws` | Amazon Web Services (default) |
+| `azure` | Microsoft Azure |
+| `gcp` | Google Cloud Platform |
+| `kubernetes` | Kubernetes clusters |
+| `m365` | Microsoft 365 |
+| `github` | GitHub |
+| `googleworkspace` | Google Workspace |
+| `okta` | Okta |
+| `cloudflare` | Cloudflare |
+| `oraclecloud` | Oracle Cloud Infrastructure |
+| `openstack` | OpenStack |
+| `alibabacloud` | Alibaba Cloud |
+| `iac` | Infrastructure as Code (Terraform, CloudFormation) |
+| `llm` | LLM Provider (Beta) |
+| `image` | Container Image scanning |
+| `dashboard` | Launch local dashboard |
+
+## Scan Scope
+
+Control what gets scanned. These flags are mutually exclusive:
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--check <check_id ...>` | `-c` | Run specific checks by ID |
+| `--checks-file <path>` | `-C` | JSON file listing checks to run |
+| `--service <name ...>` | `-s` | Run all checks for specific services |
+| `--compliance <framework>` | | Run checks for a compliance framework |
+| `--category <name ...>` | | Run checks in specific categories |
+
+These can be combined with scan scope:
+
+| Flag | Description |
+|------|-------------|
+| `--severity <level ...>` | Filter: `critical`, `high`, `medium`, `low`, `informational` |
+| `--checks-folder <path>` | Load custom checks from an external directory |
+
+### Examples
+
+```bash
+# Scan only S3 and IAM services
+prowler aws --services s3 iam
+
+# Only critical and high severity findings
+prowler aws --severity critical high
+
+# Run CIS 3.0 benchmark
+prowler aws --compliance cis_3.0_aws
+
+# Specific checks only
+prowler aws --check s3_bucket_public_access iam_root_mfa_enabled
+
+# Combine service filter with severity
+prowler aws --services ec2 --severity critical high
+```
+
+## Exclude Checks/Services
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--excluded-check <check_id ...>` | `-e` | Skip specific checks |
+| `--excluded-checks-file <path>` | | JSON file listing checks to skip |
+| `--excluded-service <name ...>` | | Skip entire services |
+
+## Output
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--output-formats <format ...>` | `-M` | `csv json-ocsf html` | Output file formats |
+| `--output-directory <path>` | `-o` | `./output` | Directory for output files |
+| `--output-filename <name>` | `-F` | auto-generated | Custom filename (no extension) |
+| `--status <status ...>` | | all | Filter: `PASS`, `FAIL`, `MANUAL` |
+| `--verbose` | | off | Show all check results in terminal |
+| `--no-banner` | `-b` | off | Hide the Prowler banner |
+
+Available formats: `csv`, `json-ocsf`, `html`, `json-asff` (AWS only), `json-sarif` (IaC only)
+
+## Logging
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--log-level <LEVEL>` | `CRITICAL` | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `--log-file <path>` | none | Write logs to a file |
+| `--only-logs` | off | Print only logs to stdout |
+
+## AWS-Specific Flags
+
+### Authentication
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--profile <name>` | `-p` | AWS CLI profile to use |
+| `--role <arn>` | `-R` | IAM role ARN to assume |
+| `--session-duration <seconds>` | `-T` | STS session duration (default: 3600) |
+| `--external-id <id>` | `-I` | External ID for cross-account role assumption |
+| `--mfa` | | Prompt for MFA TOTP code |
+
+### Regions
+
+| Flag | Description |
+|------|-------------|
+| `--region <region ...>` | Scan only specific regions |
+| `--excluded-region <region ...>` | Skip specific regions |
+
+### Security Hub
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--security-hub` | `-S` | Send findings to AWS Security Hub |
+| `--send-sh-only-fails` | | Only send FAIL findings |
+
+### S3 Output
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--output-bucket <name>` | `-B` | Upload output to S3 bucket |
+| `--output-bucket-no-assume <name>` | `-D` | Upload to S3 without assuming a role |
+
+### Resource Filtering
+
+| Flag | Description |
+|------|-------------|
+| `--resource-tag <Key=Value ...>` | Scan only resources with specific tags |
+| `--resource-arn <arn ...>` | Scan only specific resources by ARN |
+
+## Cross-Account Scanning (AssumeRole)
+
+Prowler can scan a different AWS account by assuming a role in that account.
+
+### Prerequisites
+
+1. **Target account** has a role with `SecurityAudit` and `ViewOnlyAccess` policies and a trust policy allowing your source account
+2. **Source account** has `sts:AssumeRole` permission on the target role ARN
+
+### Usage
+
+```bash
+# Assume a role in another account
+prowler aws --role arn:aws:iam::222222222222:role/ProwlerAuditRole
+
+# With a custom session name
+prowler aws --role arn:aws:iam::222222222222:role/ProwlerAuditRole --role-session-name prowler-workshop
+
+# With an external ID
+prowler aws --role arn:aws:iam::222222222222:role/ProwlerAuditRole --external-id my-external-id
+
+# Multi-account with Organizations
+prowler aws --organizations-role arn:aws:iam::222222222222:role/ProwlerAuditRole
+```
+
+## List / Discovery
+
+These flags print information and exit — they don't run a scan.
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--list-checks` | `-l` | List all available checks |
+| `--list-services` | | List services covered |
+| `--list-compliance` | | List compliance frameworks |
+| `--list-compliance-requirements <framework>` | | List requirements for a framework |
+| `--list-categories` | | List check categories |
+| `--list-fixer` | | List auto-remediation fixers |
+
+## 3rd Party Integrations
+
+| Flag | Description |
+|------|-------------|
+| `--shodan` | Check public IPs against Shodan (`SHODAN_API_KEY` env var) |
+| `--slack` | Send summary to Slack (`SLACK_API_TOKEN` + `SLACK_CHANNEL_NAME` env vars) |
+| `--push-to-cloud` | Send findings to Prowler Cloud (`PROWLER_CLOUD_API_KEY` env var) |
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All checks passed |
+| 2 | Execution error |
+| 3 | One or more checks failed (suppressible with `-z`) |
+
+## Common Recipes
+
+```bash
+# Full AWS scan with all defaults
+prowler aws
+
+# Fast scan for a demo
+prowler aws --services s3 iam --severity critical high
+
+# CIS benchmark with verbose output
+prowler aws --compliance cis_3.0_aws --verbose
+
+# Multi-region scan excluding noisy checks
+prowler aws --region us-east-1 eu-west-1 --excluded-service cloudwatch
+
+# Azure scan
+prowler azure
+
+# Kubernetes cluster scan
+prowler kubernetes
+
+# IaC scan on a Terraform directory
+prowler iac --iac-framework terraform --iac-path ./infra
+
+# Generate only CSV output to a specific folder
+prowler aws --output-formats csv --output-directory /tmp/prowler-scan
+```

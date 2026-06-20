@@ -1,0 +1,89 @@
+---
+title: CloudFormation Deployment
+description: Deploy the Prowler CLI workshop EC2 environment automatically using CloudFormation.
+---
+
+The CloudFormation template provisions a complete workshop environment including an EC2 instance, IAM role, security group, and S3 bucket for report export.
+
+## Deploy the Stack
+
+Deploy via the AWS Console (**CloudFormation > Create Stack > Upload template**) or the CLI:
+
+```bash
+aws cloudformation create-stack \
+  --stack-name prowler-workshop \
+  --template-body file://cfn-deploy-prowler-cli-ec2 \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameters \
+    ParameterKey=VpcId,ParameterValue=vpc-xxxxxxxx \
+    ParameterKey=SubnetId,ParameterValue=subnet-xxxxxxxx
+```
+
+## Template Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `S3BucketName` | `<account-id>-prowler-output` | S3 bucket name for report uploads |
+| `IAMRoleName` | `prowler-ec2-cli` | IAM role name for the EC2 instance |
+| `SecurityGroupName` | `prowler-ec2-cli-sg` | Security group name |
+| `EC2InstanceName` | `prowler-ec2-cli` | Name tag for the instance |
+| `InstanceType` | `t3.medium` | Instance type (`t3.small`, `t3.medium`, `t3.large`) |
+| `VpcId` | *(required)* | VPC for the security group |
+| `SubnetId` | *(required)* | Public subnet for the EC2 instance |
+| `DashboardCIDR` | `0.0.0.0/0` | CIDR allowed to access port 11666 |
+
+## What Gets Created
+
+- **S3 Bucket** — encrypted, all public access blocked
+- **IAM Role** — `SecurityAudit` + `ViewOnlyAccess` + `AmazonSSMManagedInstanceCore` + S3 upload permissions
+- **Security Group** — inbound TCP 11666 from the specified CIDR
+- **EC2 Instance** — Amazon Linux 2023, 20 GB gp3, with UserData that installs Prowler and patches the dashboard binding
+
+## After Deployment
+
+The instance runs a UserData script that installs Python 3.12, Prowler, and patches the dashboard binding. This takes 2–3 minutes after the instance launches.
+
+### Check if Setup is Complete
+
+```bash
+ls /home/ssm-user/.prowler-setup-complete
+```
+
+If the file exists, setup is done.
+
+### Watch Setup Progress
+
+```bash
+sudo tail -f /var/log/cloud-init-output.log
+```
+
+### Check if Setup is Still Running
+
+```bash
+ps aux | grep -i "pip\|dnf"
+```
+
+If only the `grep` process shows up, the script has finished.
+
+## Stack Outputs
+
+| Output | Description |
+|--------|-------------|
+| `InstanceId` | EC2 Instance ID for Session Manager |
+| `PublicIP` | Public IP of the instance |
+| `DashboardURL` | URL to access the dashboard |
+| `S3BucketOutput` | S3 bucket name |
+| `S3UploadCommand` | Ready-to-use upload command |
+| `SessionManagerCommand` | Console URL to connect via Session Manager |
+
+## Troubleshooting
+
+| Issue | Command |
+|-------|---------|
+| Prowler not found | `which prowler` — if empty, check the cloud-init log |
+| Setup failed | `sudo cat /var/log/cloud-init-output.log \| tail -80` |
+| Dashboard patch not applied | `python3.12 -c "import dashboard; print(dashboard.DASHBOARD_ARGS)"` — should show `host: 0.0.0.0` |
+| Documents folder missing | `ls /home/ssm-user/Documents` — if missing, setup didn't complete |
+| Instance has no public IP | Check subnet has "Auto-assign public IPv4" enabled |
+| Can't reach dashboard | Verify security group has port 11666 open and `prowler dashboard` is running |
+| cloud-init didn't run | `cloud-init status` — should say `done` |

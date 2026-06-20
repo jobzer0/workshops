@@ -1,0 +1,34 @@
+---
+title: Dashboard
+description: Launch the Prowler interactive dashboard to explore scan results visually.
+---
+
+## Launch the Dashboard
+
+The Prowler CLI dashboard provides an interactive web UI to explore your scan results.
+
+```bash
+prowler dashboard
+```
+
+Open your browser to: [http://localhost:11666](http://localhost:11666)
+
+The dashboard reads CSV files from the `output/` folder relative to where you run the command. Make sure you launch the dashboard from the same directory you ran the scan in.
+
+## Explore the Dashboard
+
+Once the dashboard is running:
+
+- **Overview page:** Summary of findings by severity, service, and region
+- **Compliance page:** Results mapped to compliance frameworks (CIS, PCI-DSS, etc.)
+- Use the navigation sidebar to switch between views
+
+## Remote Server Access (EC2)
+
+By default the dashboard binds to `127.0.0.1`, which means it only accepts connections from the same machine. If you're running on a remote server (e.g., EC2) and want to access the dashboard from your browser, you need to apply a workaround.
+
+See the [EC2 Deployment](/workshops/prowler-cli/ec2-deployment) page for instructions on exposing the dashboard externally.
+
+<Callout type="info">
+When running locally on Windows or macOS, `localhost:11666` works in your browser since you're on the same machine. The remote binding workaround is only needed for headless servers.
+</Callout>

@@ -1,0 +1,23 @@
+---
+title: Install Prowler
+description: Install Prowler CLI using pip on Linux, Windows, or macOS.
+---
+
+## Install via pip
+
+| Linux | Windows | macOS |
+|-------|---------|-------|
+| `pip3 install prowler` | `pip install prowler` | `pip3 install prowler` |
+
+## Verify the Installation
+
+```bash
+prowler --version
+```
+
+## PATH Issues
+
+If you get a "command not found" error, ensure your Python scripts directory is in your PATH:
+
+- **Linux/macOS:** Add `export PATH="$HOME/.local/bin:$PATH"` to your shell profile (`~/.bashrc` or `~/.zshrc`)
+- **Windows:** The installer usually handles this, but check `%APPDATA%\Python\Python312\Scripts`
