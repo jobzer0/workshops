@@ -86,8 +86,8 @@ Based on the Fumadocs `black` preset (`fumadocs-ui/css/black.css`) with the prim
 
 **Key design decisions:**
 - **Dark mode primary:** `hsl(36, 100%, 50%)` = `#FF9900` (full AWS orange, 7.2:1 contrast on black)
-- **Light mode primary:** `hsl(32, 100%, 40%)` = `#CC7A00` (darkened orange, ~4.6:1 contrast on white, WCAG AA compliant)
-- **Primary foreground:** White text in light mode, black text in dark mode (for contrast on the orange)
+- **Light mode primary:** `hsl(34, 86%, 58%)` = `#F19E39` (AWS-style orange on white, warmer and readable)
+- **Primary foreground:** Black text in both modes (for contrast on the orange)
 - **Ring color:** Matches primary in each mode
 
 **How it's loaded (`src/app/global.css`):**
@@ -104,7 +104,27 @@ The import order matters: `jobzero.css` replaces the default theme (e.g., `fumad
 
 ---
 
-### 4. Styled Nav Title (JOBZER0 with colored "0")
+### 4. Browser Title & Metadata
+
+**File:** `src/app/layout.tsx`
+
+```typescript
+export const metadata: Metadata = {
+  title: {
+    default: 'JOBZER0 Workshops',
+    template: '%s | JOBZER0',
+  },
+  description: 'Hands-on Cloud Security Workshops',
+};
+```
+
+- **Default:** Browser tab shows "JOBZER0 Workshops" on the home/landing page
+- **Template:** Workshop pages show "Page Title | JOBZER0" (e.g., "Install Prowler | JOBZER0")
+- **Description:** Used for SEO meta tags and OG cards
+
+---
+
+### 5. Styled Nav Title (JOBZER0 with colored "0")
 
 **File:** `src/lib/layout.shared.tsx`
 
@@ -125,7 +145,7 @@ The `text-fd-primary` utility class uses the `--color-fd-primary` CSS variable f
 
 ---
 
-### 5. Content Structure
+### 6. Content Structure
 
 Workshop content lives in `content/workshops/`. Each workshop is a subfolder with its own `meta.json` for sidebar navigation:
 

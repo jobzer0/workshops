@@ -10,13 +10,13 @@
   --color-fd-card: hsl(0, 0%, 99.7%);
   --color-fd-card-foreground: hsl(0, 0%, 3.9%);
   --color-fd-border: hsla(0, 0%, 60%, 0.2);
-  --color-fd-primary: hsl(32, 100%, 40%);
-  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --color-fd-primary: hsl(34, 86%, 58%);
+  --color-fd-primary-foreground: hsl(0, 0%, 0%);
   --color-fd-secondary: hsl(0, 0%, 96.1%);
   --color-fd-secondary-foreground: hsl(0, 0%, 9%);
   --color-fd-accent: hsl(0, 0%, 94.1%);
   --color-fd-accent-foreground: hsl(0, 0%, 9%);
-  --color-fd-ring: hsl(32, 100%, 40%);
+  --color-fd-ring: hsl(34, 86%, 58%);
 }
 
 .dark {
